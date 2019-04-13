@@ -15,6 +15,24 @@ class CommentForm(forms.ModelForm):
 		fields=('content',)
 
 
+class questionForm(forms.ModelForm):
+
+    content=forms.CharField(widget=forms.TextInput(
+
+        attrs={
+
+            'class':'form-control'
+
+        }
+
+    ),label='')
+
+    class Meta:
+
+        model=question
+
+        fields=('content',)
+
 
 
 
