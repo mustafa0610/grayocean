@@ -1,7 +1,20 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-from django.urls import reverse 
+from django.urls import reverse
+
+class question(models.Model):
+	answer=models.TextField(blank=True)
+
+	content=models.TextField(max_length=200)
+
+	timestamp=models.DateTimeField(auto_now_add=True)
+
+	user=models.ForeignKey(User,on_delete=models.CASCADE,default=0)
+
+	def __str__(self):
+
+	    return '{}-{}'.format(str(self.user.username),len(self.answer))
 
 class Blog(models.Model):
 	title=models.CharField(max_length=100)
@@ -27,7 +40,7 @@ class Blog(models.Model):
 
 	def to_comments(blog_id):
 		return reverse('post-comments', args=[str(blog_id)])
-	
+
 
 class comment(models.Model):
 	post=models.ForeignKey(Blog, on_delete=models.CASCADE)
@@ -37,7 +50,7 @@ class comment(models.Model):
 
 	def __str__(self):
 		return '{}-{}'.format(self.post.title,str(self.user.username))
-	
+
 	def get_absolute_url(self):
 		return reverse('post-detail', kwargs={"post_id": self. post_id, "comment_id": self.pk})
 
