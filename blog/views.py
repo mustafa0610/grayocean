@@ -1,6 +1,6 @@
 from django.shortcuts import render,get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import Blog, comment, Report, PostImages
+from .models import Blog, comment, Report, PostImages,question
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from blog.forms import CommentForm, CommentSmallForm, PostCreateForm
 from django.contrib.auth.decorators import login_required
@@ -18,6 +18,48 @@ from django.db.models import Q
 from django.forms import modelformset_factory
 
 
+
+
+def questions(request):
+	questions=question.objects.all()
+	morequestions=False
+	answer=question.objects.filter(user=request.user, answer='')
+	number_answer=answer.count()
+
+	if number_answer<3:
+		morequestions=True
+
+	if request.method=="POST":
+		question_form=questionForm(request.POST)
+		if question_form.is_valid():
+			content=request.POST.get('content')
+			new_question=question.objects.create(user=request.user, content=content)
+			new_question.save()
+			return redirect('questions')
+	else:
+		question_form=questionForm()
+
+
+	context={
+
+    'questions':questions,
+    'form':question_form,
+    'answer':morequestions
+
+	}
+
+	return render(request, 'blog/questions.html',context)
+
+
+
+
+
+
+
+
+
+
+
 def BlogsList(request):
 	search_term=''
 	if 'search' in request.GET:
@@ -30,10 +72,10 @@ def BlogsList(request):
 		message=True
 		nav=False
 	else:
-		blogs=Blog.objects.all()
-		paginator = Paginator(blogs, 8)
-		page=request.GET.get('page')
-		paginator_page=paginator.get_page(page)
+		blogs=None
+		paginator =None
+		page=None
+		paginator_page=None
 		search_term_extract=''
 		message=False
 		nav=True
@@ -68,15 +110,15 @@ def user_blog_list(self,username):
 	'posts':blogs
 	}
 	return render(request,'blog/user_posts.html',context)
-		
+
 
 class CommentList(ListView):
 	model=comment
 	template_name='blog/comment_list.html'
 	context_object_name='comments'
 	paginate_by=8
-	
-		
+
+
 
 
 def post_detail(request, pk):
@@ -99,9 +141,9 @@ def post_detail(request, pk):
 			new_comment.save()
 			return HttpResponseRedirect(Blog.redirect_route(blog_id=pk))
 	else:
-		comment_form= CommentForm()		
+		comment_form= CommentForm()
 
-	
+
 
 
 	is_commented=False
@@ -114,7 +156,7 @@ def post_detail(request, pk):
 		'there_are_comments':there_are_comments,
 		'post':post,
 		'is_liked': post.likes.filter(id=request.user.id).exists(),
-		'is_disliked': post.dislikes.filter(id=request.user.id).exists(), 
+		'is_disliked': post.dislikes.filter(id=request.user.id).exists(),
 		'likes':post.likes,
 		'dislikes':post.dislikes,
         'comments':comments,
@@ -147,7 +189,7 @@ def dislike_post(request, blog_id):
 		'is_liked': post.likes.filter(id=request.user.id).exists(),
 
         }
-	return HttpResponseRedirect(Blog.redirect_route(blog_id))	
+	return HttpResponseRedirect(Blog.redirect_route(blog_id))
 
 def like_post(request, blog_id):
 	post = get_object_or_404(Blog, id=blog_id)
@@ -212,7 +254,7 @@ def not_creator(request):
 # 		'post':post,
 # 		'is_liked': post.likes.filter(id=request.user.id).exists(),
 #         }
-# 	return HttpResponseRedirect(Blog.get_absolute_url())	
+# 	return HttpResponseRedirect(Blog.get_absolute_url())
 
 
 
@@ -250,7 +292,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin ,UpdateView):
 	model=Blog
-	fields=['title','content','image','video']
+	fields=['title','content','image','image1','image2','image3','image4','video']
 	login_url = "/login/"
 	def form_valid(self,form):
 		form.instance.author=self.request.user
@@ -281,9 +323,9 @@ def comments_list(request, blog_id):
 	page = request.GET.get('page')
 	comments = paginator.get_page(page)
 	comments_count=comment.objects.filter(post=post)
-    	
 
-	
+
+
 	if request.method=="POST":
 		comment_form=CommentSmallForm(request.POST)
 		if comment_form.is_valid():
@@ -292,11 +334,11 @@ def comments_list(request, blog_id):
 			new_comment.save()
 			return HttpResponseRedirect(Blog.to_comments(blog_id=blog_id))
 	else:
-		comment_form= CommentSmallForm()		
+		comment_form= CommentSmallForm()
 
 	context={
 		'post':post,
-		'is_liked': post.likes.filter(id=request.user.id).exists(), 
+		'is_liked': post.likes.filter(id=request.user.id).exists(),
         'comments':comments,
         'comment_form':comment_form,
         'comments_count':comments_count,
@@ -317,7 +359,7 @@ def comment_delete(request, pk):
 			comment_to_delete.delete()
 			messages.success(request, 'Your comment has been deleted')
 			return HttpResponseRedirect('/post/'+str(post_url))
-		
+
 	context={
 		'comment':comment_to_delete
 	}
@@ -335,7 +377,7 @@ def comment_detail(request,pk):
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = comment
     success_url = reverse_lazy('post-detail')
-    
+
 
     def test_func(self):
         comment = self.get_object()
@@ -357,11 +399,11 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 #         paginator = Paginator(blogs, 2)
 #         page = request.GET.get('page')
 #         blogs = paginator.get_page(page)
-    	
 
-    
 
-    
+
+
+
 
 #     get_dict_copy = request.GET.copy()
 #     params = get_dict_copy.pop('page', True) and get_dict_copy.urlencode()
@@ -380,7 +422,7 @@ def post_create(request):
 			post.author=request.user
 			post.save()
 			pk=post.id
-			
+
 			for f in formset.cleaned_data:
 				try:
 					photo=PostImages.objects.create(post=post,image=f['image'])
@@ -388,7 +430,7 @@ def post_create(request):
 					return HttpResponseRedirect(Blog.redirect_route(blog_id=pk))
 				except Exception as e:
 					break
-				
+
 	else:
 		form=PostCreateForm()
 		formset=ImageFormset(queryset=PostImages.objects.none())
