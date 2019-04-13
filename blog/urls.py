@@ -1,12 +1,13 @@
 from django.urls import path
 from . import views
-from django.conf import settings 
+from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from .views import PostCreateView, PostUpdateView, PostDeleteView, UserBlogsList, not_creator, CommentList, comments_list, comment_delete, comment_detail,CommentDeleteView,about
+from .views import PostCreateView, PostUpdateView, PostDeleteView, UserBlogsList, not_creator, CommentList, comments_list, comment_delete, comment_detail,CommentDeleteView,about,questions
 
 urlpatterns=[
 path('',views.BlogsList,name='blog-home'),
+path('questions',views.questions,name='questions'),
 path('about',views.about,name='about'),
 path('<int:blog_id>/like/', views.like_post, name='like_post'),
 path('<int:blog_id>/dislike/', views.dislike_post, name='dislike_post'),
@@ -25,6 +26,6 @@ path('comment/<int:pk>/delete', views.comment_delete, name='comment-delete'),
 ]
 
 
-if settings.DEBUG: 
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
