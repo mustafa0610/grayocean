@@ -1,4 +1,4 @@
-from .models import comment,PostImages,Blog
+from .models import comment,PostImages,Blog,question
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
